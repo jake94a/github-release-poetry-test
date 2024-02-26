@@ -54,7 +54,7 @@ jobs:
           fi
 
       - name: issue release
-        if: !steps.matching-release.outputs.release-exists
+        if: ${{ fromJSON(steps.matching-release.outputs.release-exists) == false }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
