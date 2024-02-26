@@ -39,22 +39,22 @@ jobs:
           PACKAGE_VERSION=$(grep -m  1 'version =' pyproject.toml | grep -oP '(?<=")[^"]*(?=")')
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
 
-        # if grep successfully finds the current version in the list
-        # then don't proceed with the release
       - name: Check for matching release version
+        id: matching-release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release list | grep ${{ env.PACKAGE_VERSION }}; status=$?
-          if [ $status=0 ]
+          if [[ "$(gh release view ${{ env.PACKAGE_VERSION }} 2>&1)" == "release not found" ]]
           then
-            echo "RELEASE VERSION ALREADY EXISTS"
-            exit 1
+            echo "Release not found."
+            echo "release-exists=false" >> $GITHUB_OUTPUT
           else
-            exit 0
+            echo "Release found."
+            echo "release-exists=true" >> $GITHUB_OUTPUT
           fi
 
       - name: issue release
+        if: steps.matching-release.outputs.release-exists == false
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
