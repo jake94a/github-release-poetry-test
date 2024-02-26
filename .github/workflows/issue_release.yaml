@@ -8,7 +8,7 @@ on:
       - "main"
     paths:
       - pyproject.toml
-      - .github/workflows/cd_pipeline.yaml
+      - .github/workflows/issue_release.yaml
   workflow_dispatch:
 
 ## BUILD
