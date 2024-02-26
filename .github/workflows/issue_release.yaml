@@ -40,6 +40,8 @@ jobs:
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
 
       - name: issue release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
 
