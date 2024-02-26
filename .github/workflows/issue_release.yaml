@@ -54,7 +54,7 @@ jobs:
           fi
 
       - name: issue release
-        if: steps.matching-release.outputs.release-exists == false
+        if: !steps.matching-release.outputs.release-exists
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -65,7 +65,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PACKAGE_NAME: "my_package"
         run: |
-          gh release upload -t ${{ env.PACKAGE_VERSION }} dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
+          gh release upload test-tag dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
 
       # - name: Set up Python
       #   uses: actions/setup-python@v4
