@@ -39,11 +39,15 @@ jobs:
           PACKAGE_VERSION=$(grep -m  1 'version =' pyproject.toml | grep -oP '(?<=")[^"]*(?=")')
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
 
-      - name: issue release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check for matching release version
         run: |
-          gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
+          gh release list
+
+      # - name: issue release
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #   run: |
+      #     gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
 
       # - name: Set up Python
       #   uses: actions/setup-python@v4
