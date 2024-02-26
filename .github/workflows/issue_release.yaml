@@ -58,14 +58,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
+          gh release create ${{ env.PACKAGE_VERSION }} -t dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}* "${{ env.PACKAGE_VERSION }} $(date +%Y%m%d%H%M%S)" --generate-notes
 
-      - name: upload release assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PACKAGE_NAME: "my_package"
-        run: |
-          gh release upload ${{ env.PACKAGE_VERSION }} dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
+      # - name: upload release assets
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #     PACKAGE_NAME: "my_package"
+      #   run: |
+      #     gh release upload ${{ env.PACKAGE_VERSION }} dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
 
       # - name: Set up Python
       #   uses: actions/setup-python@v4
