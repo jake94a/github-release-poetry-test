@@ -40,6 +40,8 @@ jobs:
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
 
       - name: Check for matching release version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release list
 
