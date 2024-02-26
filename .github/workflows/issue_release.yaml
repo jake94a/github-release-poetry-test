@@ -48,16 +48,24 @@ jobs:
           gh release list | grep ${{ env.PACKAGE_VERSION }}; status=$?
           if [ $status=0 ]
           then
+            echo "RELEASE VERSION ALREADY EXISTS"
             exit 1
           else
             exit 0
           fi
 
-      # - name: issue release
-      #   env:
-      #     GH_TOKEN: ${{ github.token }}
-      #   run: |
-      #     gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
+      - name: issue release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create -t ${{ env.PACKAGE_VERSION }} "$(date +%Y%m%d%H%M%S)" --generate-notes
+
+      - name: upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_NAME: "my_package"
+        run: |
+          gh release upload -t ${{ env.PACKAGE_VERSION }} dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
 
       # - name: Set up Python
       #   uses: actions/setup-python@v4
