@@ -19,7 +19,7 @@ on:
 # run poetry publish
 
 jobs:
-  build:
+  build-and-release:
     # auth to gcloud requires these permissions
     permissions:
       contents: "write"
@@ -34,10 +34,54 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10.9"
+
+      # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-google-cloud-platform
+      # auth to GCloud as a service account (could use a real user, but SA allow least-privilege)
+      #   - name: Authenticate to Google Cloud
+      #     uses: google-github-actions/auth@v0.8.1
+      #     id: gsm-auth
+      #     with:
+      #       workload_identity_provider: projects/${{ secrets.ENTERPRISE_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-staging/providers/github-staging
+      #       service_account: ${{ env.GITHUB_DEPLOYER_SA }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      # - name: set up env
+      #   env:
+      #     GAR_REPO: ${{ env.GAR_REPO }}
+      #   run: |
+      #     poetry self add keyrings.google-artifactregistry-auth
+      #     poetry config repositories.gcp $GAR_REPO
+
+      - name: test build and publish
+        run: |
+          poetry build
+      
       - name: Get Version
         run: |
           PACKAGE_VERSION=$(grep -m  1 'version =' pyproject.toml | grep -oP '(?<=")[^"]*(?=")')
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+
+      - name: commit build assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ env.PACKAGE_VERSION }}
+        run: |
+          git add dist
+          git commit -m "build $VER"
+          git push origin main
+
+      ##########
+      NEED TO COMMIT BUILD ASSETS TO REPO
+      ##########
+
+
 
       - name: Check for matching release version
         id: matching-release
@@ -53,48 +97,15 @@ jobs:
             echo "release-exists=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: issue release
+      - name: issue release to GH
         if: ${{ fromJSON(steps.matching-release.outputs.release-exists) == false }}
         env:
-          VER: ${{ env.PACKAGE_VERSION }}
           GH_TOKEN: ${{ github.token }}
           NAME: "my_package"
+          VER: ${{ env.PACKAGE_VERSION }}
         run: |
           gh release create $VER dist/$NAME-$VER* -t "$VER $(date +%Y%m%d%H%M%S)" --generate-notes
 
-      # - name: upload release assets
-      #   env:
-      #     GH_TOKEN: ${{ github.token }}
-      #     PACKAGE_NAME: "my_package"
-      #   run: |
-      #     gh release upload ${{ env.PACKAGE_VERSION }} dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}*
-
-      # - name: Set up Python
-      #   uses: actions/setup-python@v4
-      #   with:
-      #     python-version: "3.10.9"
-
-      # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-google-cloud-platform
-      # auth to GCloud as a service account (could use a real user, but SA allow least-privilege)
-      #   - name: Authenticate to Google Cloud
-      #     uses: google-github-actions/auth@v0.8.1
-      #     id: gsm-auth
-      #     with:
-      #       workload_identity_provider: projects/${{ secrets.ENTERPRISE_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-staging/providers/github-staging
-      #       service_account: ${{ env.GITHUB_DEPLOYER_SA }}
-
-      # - name: Install Poetry
-      #   run: |
-      #     curl -sSL https://install.python-poetry.org | python3 -
-
-      # - name: set up env
-      #   env:
-      #     GAR_REPO: ${{ env.GAR_REPO }}
-      #   run: |
-      #     poetry self add keyrings.google-artifactregistry-auth
-      #     poetry config repositories.gcp $GAR_REPO
-
-      # - name: test build and publish
-      #   run: |
-      #     poetry build
-      #     poetry publish --repository gcp --skip-existing
+      - name: publish package to GAR
+        run: |
+          poetry publish --repository gcp --skip-existing
