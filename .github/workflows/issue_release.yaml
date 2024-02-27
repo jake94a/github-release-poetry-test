@@ -56,9 +56,11 @@ jobs:
       - name: issue release
         if: ${{ fromJSON(steps.matching-release.outputs.release-exists) == false }}
         env:
+          VER: ${{ env.PACKAGE_VERSION }}
           GH_TOKEN: ${{ github.token }}
+          NAME: "my_package"
         run: |
-          gh release create ${{ env.PACKAGE_VERSION }} -t dist/${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}* "${{ env.PACKAGE_VERSION }} $(date +%Y%m%d%H%M%S)" --generate-notes
+          gh release create $VER dist/$NAME-$VER* -t "$VER $(date +%Y%m%d%H%M%S)" --generate-notes
 
       # - name: upload release assets
       #   env:
