@@ -62,7 +62,7 @@ jobs:
       - name: test build and publish
         run: |
           poetry build
-      
+
       - name: Get Version
         run: |
           PACKAGE_VERSION=$(grep -m  1 'version =' pyproject.toml | grep -oP '(?<=")[^"]*(?=")')
@@ -76,12 +76,6 @@ jobs:
           git add dist
           git commit -m "build $VER"
           git push origin main
-
-      ##########
-      NEED TO COMMIT BUILD ASSETS TO REPO
-      ##########
-
-
 
       - name: Check for matching release version
         id: matching-release
